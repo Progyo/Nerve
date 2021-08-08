@@ -10,9 +10,6 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
-
-secrets.json
-
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 
@@ -53,6 +50,7 @@ ExportedObj/
 
 # Unity3D generated file on crash reports
 sysinfo.txt
+secret.json
 
 # Builds
 *.apk
