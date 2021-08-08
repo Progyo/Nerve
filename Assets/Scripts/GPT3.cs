@@ -19,7 +19,7 @@ public static class GPT3
     /// <summary>
     /// List filled by GetEngines
     /// </summary>
-    private static List<string> engineIds = new List<string>();
+    public static List<string> engineIds = new List<string>();
 
     /// <summary>
     /// Load api key
@@ -39,10 +39,13 @@ public static class GPT3
     }
 
     /// <summary>
-    /// Request from Open-AI
+    /// Request stuff from Open-AI
     /// </summary>
-    /// <param name="req"></param>
-    /// <returns></returns>
+    /// <param name="prompt"> The prompt </param>
+    /// <param name="engine"> The engine to use </param>
+    /// <param name="max_tokens"> The max tokens to generate </param>
+    /// <param name="parse"> If set to true, will only return the text and not the full json </param>
+    /// <returns> Returns the request either raw or parsed </returns>
     public static string Request(string prompt, string engine, int max_tokens=5, bool parse=false) 
     {
         if(engineIds.Count == 0) 
@@ -71,18 +74,78 @@ public static class GPT3
                     response = res2.Result;
                 }
             }
+
+            if (parse)
+            {
+                JToken data = JObject.Parse(response);
+                return data["choices"][0]["text"].Value<string>();
+            }
+
         }
         else 
         {
             return "None";
         }
 
-        if (parse) 
+        return response;
+    }
+
+    /// <summary>
+    /// Request stuff from Open-AI
+    /// </summary>
+    /// <param name="prompt"> The prompt needs to have format "[Prompt,Classification],\n ..., [Prompt, Classification] "</param>
+    /// <param name="engine"> The engine to use </param>
+    /// <param name="max_tokens"> The max tokens to generate </param>
+    /// <param name="parse"> If set to true, will only return the text and not the full json </param>
+    /// <returns> Returns the request either raw or parsed </returns>
+    public static string RequestClassification(string prompt, string query, List<string> labels, string search_engine="ada", string engine="curie", int max_tokens = 5, bool parse = false)
+    {
+        if (engineIds.Count == 0)
         {
-            JToken data = JObject.Parse(response);
-            return data["choices"][0]["text"].Value<string>();
+            GetEngines();
         }
 
+
+        string response = "";
+
+        if (engineIds.Contains(engine) && engineIds.Contains(search_engine))
+        {
+            //Turn list of labels into suitable string
+            string stringLabels = "";
+            foreach(string label in labels) 
+            {
+                stringLabels += "\""+label+"\",";
+            }
+            stringLabels = stringLabels.Remove(stringLabels.Length - 1);
+
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.openai.com/v1/classifications"))
+                {
+                    request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
+
+                    request.Content = new StringContent("{\n    \"examples\": [\n"+prompt+"],\n    \"query\": \""+query+"\",\n    \"search_model\": \""+search_engine+"\",\n    \"model\": \""+engine+"\",\n    \"labels\":["+stringLabels+"]\n  }");
+                    request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+
+                    System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
+                    res.Wait();
+                    System.Threading.Tasks.Task<string> res2 = res.Result.Content.ReadAsStringAsync();
+                    res2.Wait();
+                    response = res2.Result;
+                }
+            }
+
+            if (parse)
+            {
+                JToken data = JObject.Parse(response);
+                return data["label"].Value<string>();
+            }
+
+        }
+        else
+        {
+            return "None";
+        }
 
         return response;
     }
