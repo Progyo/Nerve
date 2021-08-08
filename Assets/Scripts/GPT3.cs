@@ -27,7 +27,7 @@ public static class GPT3
         //Only fetch token if it hasn't already been fetched
         if(token == "")
         {
-            StreamReader stream = File.OpenText("secret.json");
+            StreamReader stream = File.OpenText("Documents/Programming/Unity/GPT-3 AI/secret.json");
             string text = stream.ReadToEnd();
 
             //https://stackoverflow.com/questions/16652763/parsing-json-to-not-objects-in-net-4-0
