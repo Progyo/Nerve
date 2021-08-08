@@ -22,6 +22,11 @@ public static class GPT3
     public static List<string> engineIds = new List<string>();
 
     /// <summary>
+    /// The http client that fetches data from open ai
+    /// </summary>
+    private static HttpClient httpClient = new HttpClient();
+
+    /// <summary>
     /// Load api key
     /// </summary>
     private static void Init() 
@@ -58,21 +63,18 @@ public static class GPT3
 
         if (engineIds.Contains(engine)) 
         {
-            using (var httpClient = new HttpClient())
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), string.Format("https://api.openai.com/v1/engines/{0}/completions",engine)))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), string.Format("https://api.openai.com/v1/engines/{0}/completions",engine)))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
+                request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
 
-                    request.Content = new StringContent("{\n  \"prompt\": \""+ prompt + "\",\n  \"max_tokens\": "+max_tokens+"\n}");
-                    request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                request.Content = new StringContent("{\n  \"prompt\": \""+ prompt + "\",\n  \"max_tokens\": "+max_tokens+"\n}");
+                request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
 
-                    System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
-                    res.Wait();
-                    System.Threading.Tasks.Task<string> res2 = res.Result.Content.ReadAsStringAsync();
-                    res2.Wait();
-                    response = res2.Result;
-                }
+                System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
+                res.Wait();
+                System.Threading.Tasks.Task<string> res2 = res.Result.Content.ReadAsStringAsync();
+                res2.Wait();
+                response = res2.Result;
             }
 
             if (parse)
@@ -118,22 +120,20 @@ public static class GPT3
             }
             stringLabels = stringLabels.Remove(stringLabels.Length - 1);
 
-            using (var httpClient = new HttpClient())
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.openai.com/v1/classifications"))
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.openai.com/v1/classifications"))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
+                request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
 
-                    request.Content = new StringContent("{\n    \"examples\": [\n"+prompt+"],\n    \"query\": \""+query+"\",\n    \"search_model\": \""+search_engine+"\",\n    \"model\": \""+engine+"\",\n    \"labels\":["+stringLabels+"]\n  }");
-                    request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                request.Content = new StringContent("{\n    \"examples\": [\n"+prompt+"],\n    \"query\": \""+query+"\",\n    \"search_model\": \""+search_engine+"\",\n    \"model\": \""+engine+"\",\n    \"labels\":["+stringLabels+"]\n  }");
+                request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
 
-                    System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
-                    res.Wait();
-                    System.Threading.Tasks.Task<string> res2 = res.Result.Content.ReadAsStringAsync();
-                    res2.Wait();
-                    response = res2.Result;
-                }
+                System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
+                res.Wait();
+                System.Threading.Tasks.Task<string> res2 = res.Result.Content.ReadAsStringAsync();
+                res2.Wait();
+                response = res2.Result;
             }
+            
 
             if (parse)
             {

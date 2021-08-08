@@ -10,81 +10,227 @@ public class Knowledge
     /// <summary>
     /// Types of fields of information which the AI has access to (Used for initial classification)
     /// </summary>
-    public enum CoarseTextType { Question, Command, Dialog, Biography};
+    public enum CoarseTextType { None, Question, Command};
 
-    //Question knowledge that all AI's have
-    public static List<Text> presetCoarseQuestion = new List<Text>() 
+    /// <summary>
+    /// The type of question. Personal: e.g "who are you?", "what are you doing?" etc. Environment: e.g "Where is ...?", "Is ... here?"
+    /// </summary>
+    public enum QuestionType { None, Environment, Personal };
+
+    /// <summary>
+    /// The type of command. Action: e.g "Dance", "Follow me" etc. Environment: e.g "Show me where ...", "Point at ..."
+    /// </summary>
+    public enum CommandType { None, Environment, Action };
+
+
+    //Coarse Question knowledge that all AI's have
+    public static List<Text> presetCoarseQuestion = new List<Text>()
     {
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Hello. Where can I find the pasta aisle?",
             answer="Question"
         },
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="What do you think about this topic?",
             answer="Question"
         },
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Is this the right way?",
             answer="Question"
         },
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Could you please follow me?",
             answer="Question"
         },
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Where is the restroom?",
             answer="Question"
         },
         new Text(){
             type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="What's the point of this contraption?",
             answer="Question"
         },
     };
 
 
-    //Command knowledge that all AI's have
+    //Coarse Command knowledge that all AI's have
     public static List<Text> presetCoarseCommand = new List<Text>()
     {
         new Text(){
             type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Follow me now",
             answer="Command"
         },
         new Text(){
             type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Go to the market and get some fruits",
             answer="Command"
         },
         new Text(){
             type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Point at the apples",
             answer="Command"
         },
         new Text(){
             type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Show me where the restroom is",
             answer="Command"
         },
         new Text(){
             type=CoarseTextType.Command,
-            prompt="Go to the market and get some fruits",
-            answer="Command"
-        },
-        new Text(){
-            type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Explain this to me",
             answer="Command"
         },
         new Text(){
             type=CoarseTextType.Command,
+            qType=QuestionType.None,
+            cType=CommandType.None,
             prompt="Explain why we need two of these",
             answer="Command"
+        },
+    };
+
+    //Question knowledge that all AI's have
+    public static List<Text> presetQuestion = new List<Text>()
+    {
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Environment,
+            cType=CommandType.None,
+            prompt="Hello. Where can I find the pasta aisle?",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Personal,
+            cType=CommandType.None,
+            prompt="Who are you?",
+            answer="Personal"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Environment,
+            cType=CommandType.None,
+            prompt="Where are you?",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Environment,
+            cType=CommandType.None,
+            prompt="Where am I?",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Personal,
+            cType=CommandType.None,
+            prompt="Why are you doing this?",
+            answer="Personal"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Personal,
+            cType=CommandType.None,
+            prompt="Are you alright?",
+            answer="Personal"
+        },
+    };
+
+
+    //Command knowledge that all AI's have
+    public static List<Text> presetCommand = new List<Text>()
+    {
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Environment,
+            prompt="Point at the green box",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Action,
+            prompt="Dance",
+            answer="Action"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Action,
+            prompt="Hide",
+            answer="Action"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Action,
+            prompt="Follow me",
+            answer="Action"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Action,
+            prompt="Follow me to the cabin",
+            answer="Action"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Environment,
+            prompt="Show me how to get to the castle",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Environment,
+            prompt="Run back home",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Environment,
+            prompt="Run to your house",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.None,
+            cType=CommandType.Environment,
+            prompt="Run to the hill",
+            answer="Environment"
         },
     };
 
@@ -93,6 +239,8 @@ public class Knowledge
     public struct Text
     {
         public CoarseTextType type;
+        public QuestionType qType;
+        public CommandType cType;
         public string prompt;
         public string answer;
     }
@@ -166,6 +314,63 @@ public class Knowledge
     }
 
 
+
+    /// <summary>
+    /// Create question Prompt text to be sent to Open-AI
+    /// </summary>
+    /// <param name="prompts"> List of example prompts </param>
+    /// <param name="prompt"> Prompt to complete/classify</param>
+    public static string CreateQuestionClassificationPrompt(List<Text> prompts)
+    {
+        //Shuffle prompts
+        Shuffle(ref prompts);
+
+        string outString = "";
+
+        foreach (Text t in prompts)
+        {
+            if (t.qType != QuestionType.None)
+            {
+                outString += string.Format("[\"{0}\", \"{1}\"],\n", t.prompt, t.answer);
+            }
+        }
+
+        outString = outString.Remove(outString.Length - 1);
+        outString = outString.Remove(outString.Length - 1);
+
+        return outString;
+
+    }
+
+
+
+    /// <summary>
+    /// Create command Prompt text to be sent to Open-AI
+    /// </summary>
+    /// <param name="prompts"> List of example prompts </param>
+    /// <param name="prompt"> Prompt to complete/classify</param>
+    public static string CreateCommandClassificationPrompt(List<Text> prompts)
+    {
+        //Shuffle prompts
+        Shuffle(ref prompts);
+
+        string outString = "";
+
+        foreach (Text t in prompts)
+        {
+            if (t.cType != CommandType.None)
+            {
+                outString += string.Format("[\"{0}\", \"{1}\"],\n", t.prompt, t.answer);
+            }
+        }
+
+        outString = outString.Remove(outString.Length - 1);
+        outString = outString.Remove(outString.Length - 1);
+
+        return outString;
+
+    }
+
 }
 
 public class AI : MonoBehaviour
@@ -176,10 +381,18 @@ public class AI : MonoBehaviour
     /// The knowledge of the AI
     /// </summary>
     [SerializeField]
-    public List<Knowledge.Text> customknowledge;
+    public List<Knowledge.Text> customKnowledge;
 
-
+    /// <summary>
+    /// Internal knowledge of the AI
+    /// </summary>
     private List<Knowledge.Text> knowledge;
+
+
+    //This will be removed later
+    public string tempInput = "";
+
+
 
     void Start()
     {
@@ -196,17 +409,82 @@ public class AI : MonoBehaviour
         {
             knowledge.Add(text);
         }
-        foreach (Knowledge.Text text in customknowledge)
+        foreach (Knowledge.Text text in Knowledge.presetQuestion)
+        {
+            knowledge.Add(text);
+        }
+        foreach (Knowledge.Text text in Knowledge.presetCommand)
+        {
+            knowledge.Add(text);
+        }
+        foreach (Knowledge.Text text in customKnowledge)
         {
             knowledge.Add(text);
         }
 
-        string tempText = Knowledge.CreateCoarseClassificationPrompt(knowledge);
+    }
 
-        Debug.Log(tempText);
 
-        Debug.Log(GPT3.RequestClassification(tempText, "What's the meaning behind life?", new List<string>() { "Question", "Command" }, "ada", "curie", 5, true));
+    /// <summary>
+    /// Called to interact with the AI
+    /// </summary>
+    /// <param name="listen"> Whats being said to the AI </param>
+    public void Interact(string listen) 
+    {
+        //Coarse classify whats being said
+        string coarse = Knowledge.CreateCoarseClassificationPrompt(knowledge);
+        string answer = GPT3.RequestClassification(coarse, listen, new List<string>() { "Question", "Command" }, "ada", "curie", 5, true);
 
+        if(answer == "Question") 
+        {
+            Question(listen);
+        }
+        else if (answer == "Command") 
+        {
+            Command(listen);
+        }
+
+    }
+
+
+    /// <summary>
+    /// Function thats called when whats being said is classified as a command
+    /// </summary>
+    /// <param name="listen"> Whats being said to the AI </param>
+    private void Command(string listen) 
+    {
+        Debug.Log("Running Command!");
+
+        //Classify whats being said
+        string command = Knowledge.CreateCommandClassificationPrompt(knowledge);
+        string answer = GPT3.RequestClassification(command, listen, new List<string>() { "Environment", "Action" }, "ada", "curie", 5, true);
+        Debug.Log(answer);
+    }
+
+
+    /// <summary>
+    /// Function thats called when whats being said is classified as a question
+    /// </summary>
+    /// <param name="listen"> Whats being said to the AI </param>
+    private void Question(string listen)
+    {
+        Debug.Log("Running Question!");
+
+        //Classify whats being said
+        string question = Knowledge.CreateQuestionClassificationPrompt(knowledge);
+        string answer = GPT3.RequestClassification(question, listen, new List<string>() { "Environment", "Personal" }, "ada", "curie", 5, true);
+        Debug.Log(answer);
+    }
+
+
+
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space)) 
+        {
+            Interact(tempInput);
+        }
     }
 
 }
