@@ -67,7 +67,7 @@ public static class GPT3
             {
                 request.Headers.TryAddWithoutValidation("Authorization", string.Format("Bearer {0}", token));
 
-                request.Content = new StringContent("{\n  \"prompt\": \""+ prompt + "\",\n  \"max_tokens\": "+max_tokens+"\n}");
+                request.Content = new StringContent("{\n  \"prompt\": \""+ prompt + "\",\n  \"max_tokens\": "+max_tokens+ ",\n  \"stop\": \"###\" \n}");
                 request.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
 
                 System.Threading.Tasks.Task<HttpResponseMessage> res = httpClient.SendAsync(request);
@@ -76,12 +76,19 @@ public static class GPT3
                 res2.Wait();
                 response = res2.Result;
             }
-
-            if (parse)
+            try 
             {
-                JToken data = JObject.Parse(response);
-                return data["choices"][0]["text"].Value<string>();
+                if (parse)
+                {
+                    JToken data = JObject.Parse(response);
+                    return data["choices"][0]["text"].Value<string>();
+                }
             }
+            catch(System.Exception e)
+            {
+                return response;
+            }
+
 
         }
         else 

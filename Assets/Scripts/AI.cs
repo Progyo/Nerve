@@ -10,12 +10,12 @@ public class Knowledge
     /// <summary>
     /// Types of fields of information which the AI has access to (Used for initial classification)
     /// </summary>
-    public enum CoarseTextType { None, Question, Command};
+    public enum CoarseTextType { None, Question, Command, BackStory};
 
     /// <summary>
     /// The type of question. Personal: e.g "who are you?", "what are you doing?" etc. Environment: e.g "Where is ...?", "Is ... here?"
     /// </summary>
-    public enum QuestionType { None, Environment, Personal };
+    public enum QuestionType { None, Environment, Personal, Inventory};
 
     /// <summary>
     /// The type of command. Action: e.g "Dance", "Follow me" etc. Environment: e.g "Show me where ...", "Point at ..."
@@ -66,6 +66,13 @@ public class Knowledge
             qType=QuestionType.None,
             cType=CommandType.None,
             prompt="What's the point of this contraption?",
+            answer="Question"
+        },
+        new Text(){
+            type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
+            prompt="Why are you serious?",
             answer="Question"
         },
     };
@@ -161,6 +168,13 @@ public class Knowledge
             qType=QuestionType.Personal,
             cType=CommandType.None,
             prompt="Are you alright?",
+            answer="Personal"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Personal,
+            cType=CommandType.None,
+            prompt="What caused you to do that?",
             answer="Personal"
         },
     };
@@ -392,7 +406,11 @@ public class AI : MonoBehaviour
     //This will be removed later
     public string tempInput = "";
 
+    [SerializeField]
+    public Knowledge.Text backStory;
 
+
+    private List<string> previousDialog = new List<string>();
 
     void Start()
     {
@@ -453,12 +471,21 @@ public class AI : MonoBehaviour
     /// <param name="listen"> Whats being said to the AI </param>
     private void Command(string listen) 
     {
-        Debug.Log("Running Command!");
-
+        Debug.Log("Command!");
         //Classify whats being said
         string command = Knowledge.CreateCommandClassificationPrompt(knowledge);
         string answer = GPT3.RequestClassification(command, listen, new List<string>() { "Environment", "Action" }, "ada", "curie", 5, true);
-        Debug.Log(answer);
+
+
+        if (answer == "Environment")
+        {
+            Debug.Log("Environment!");
+        }
+        else if (answer == "Action")
+        {
+            Debug.Log("Action!");
+        }
+
     }
 
 
@@ -468,12 +495,44 @@ public class AI : MonoBehaviour
     /// <param name="listen"> Whats being said to the AI </param>
     private void Question(string listen)
     {
-        Debug.Log("Running Question!");
-
+        Debug.Log("Question!");
         //Classify whats being said
         string question = Knowledge.CreateQuestionClassificationPrompt(knowledge);
         string answer = GPT3.RequestClassification(question, listen, new List<string>() { "Environment", "Personal" }, "ada", "curie", 5, true);
         Debug.Log(answer);
+
+        if (answer == "Environment") 
+        {
+            Debug.Log("Environment!");
+        }
+        else if(answer == "Personal") 
+        {
+            Debug.Log("Personal!");
+            string player = "Progyo";
+            string prompt = "";
+            if (previousDialog.Count == 0) 
+            {
+                prompt = string.Format("{0}\\nA player named {1} approaches you and asks: {2}\\n###\\nYou respond by saying: ", backStory.prompt, player, listen);
+            }
+            else 
+            {
+                string previous = "";
+
+                foreach(string s in previousDialog) 
+                {
+                    previous += s + "\\n###\\n";
+                }
+
+                prompt = string.Format("{0}\\nYou and a player named {1} have been talking already. This was your previous dialog. {2}{1} now asks you: {3}\\n###\\nYou respond by saying: ", backStory.prompt, player, previous,listen);
+            }
+            Debug.Log("Prompt \n " + prompt);
+            answer = GPT3.Request(prompt, "davinci", 75, true).Split("\n".ToCharArray())[0];
+
+            previousDialog.Add(string.Format("{0}: {1}\\n###\\nYou: {2}", player, listen, answer));
+
+            Debug.Log(answer);
+        }
+
     }
 
 

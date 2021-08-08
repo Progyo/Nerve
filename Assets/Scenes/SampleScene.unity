@@ -156,7 +156,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   customKnowledge: []
-  tempInput: Where am I?
+  tempInput: How are you?
+  backStory:
+    type: 3
+    qType: 0
+    cType: 0
+    prompt: Your name is Joel Sulivan. You are a farmer who is 51 years old. You
+      are generally in a grumpy mood and don't like talking to others since your
+      tragic loss. You live on a farm with your favourite cow Betsy. You are currently
+      in a terrible mood.
+    answer: 
 --- !u!65 &580829892
 BoxCollider:
   m_ObjectHideFlags: 0
