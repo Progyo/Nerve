@@ -2,6 +2,170 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/// <summary>
+/// Inventory for AI
+/// </summary>
+public class Inventory 
+{
+    /// <summary>
+    /// Items which are stored by the AI
+    /// </summary>
+    [System.Serializable]
+    public struct Item 
+    {
+        public string name;
+        public string description;
+        public int quantity;
+    }
+
+
+    private static System.Random rng = new System.Random();
+    /// <summary>
+    /// Shuffles a list
+    /// https://stackoverflow.com/questions/273313/randomize-a-listt
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    private static void Shuffle<T>(ref List<T> list)
+    {
+
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
+    }
+
+    /// <summary>
+    /// Converts list of items to string for gpt3
+    /// </summary>
+    /// <param name="items"> The items on that page </param>
+    /// <returns></returns>
+    private static string ItemListToString(List<Inventory.Item> items, string prompt)
+    {
+        string outString = "";
+
+        //Information
+        foreach (Inventory.Item item in items)
+        {
+            outString += string.Format("Item: {0} Description: {1} Quantity: {2} \\n###\\n", item.name, item.description, item.quantity);
+        }
+
+        List<string> questions = new List<string>() { "How many {0}s do you have?", "I have {0} {1}s", "How much {0} do you have?", "I have {0} {1}", "How many {0}s are there?", "There are {0} {1}s", "Is there a {0}?", "There is {0} {1}" };
+        List<string> fakeItems = new List<string>() { "Bazooka", "Plutonium", "Hydrochloric Acid", "Super TNT" };
+
+        List<Item> alreadyAdded = new List<Item>();
+
+        //Questions
+        for (int i = 0; i < 6; i++)
+        {
+            //Randomly select one item
+            int index = rng.Next(0, items.Count - 1);
+            Inventory.Item temp = items[index];
+
+            bool found = rng.Next(0, 100) >= 50;
+
+            if (found && !alreadyAdded.Contains(temp))
+            {
+                outString += string.Format("Question: {0}\\nAnswer: {1}\\n###\\n", string.Format(questions[(i * 2) % 4], temp.name), string.Format(questions[(i * 2 + 1) % 4], temp.quantity, temp.name));
+                alreadyAdded.Add(temp);
+            }
+            else if(!found)
+            {
+                if(rng.Next(0, 100) >= 50) 
+                {
+                    outString += string.Format("Question: Do you have {0} {1}s? \\nAnswer: No I only have {2}\\n###\\n", temp.quantity+10,temp.name, temp.quantity);
+                }
+                else 
+                {
+                    outString += string.Format("Question: {0}\\nAnswer: None\\n###\\n", string.Format(questions[(i * 2) % 4], fakeItems[i % 4]));
+                }
+                
+            }
+
+        }
+
+
+        outString += string.Format("Question: {0}\\nAnswer: ", prompt);
+
+        return outString;
+    }
+
+
+
+    /// <summary>
+    /// Pass inventory information along with the request to gpt3
+    /// </summary>
+    /// <param name="listen"> The request being made </param>
+    /// <returns> Something </returns>
+    public static string ParseInventoryQuestionRequest(string listen, List<Inventory.Item> items)
+    {
+        /*
+         Item: <item name> Description: <description> Quantity: <quantity>
+         .
+         (max item count per page)
+         .
+         Question: How many apples are there?
+         Answer: There are x apples.
+         Question: What do the apples look like?
+         Answer: The apples are ...
+         Question: Are there any gold bricks?
+         Answer: None
+         */
+        //If None is triggered check next page
+
+
+        List<Inventory.Item> currentPage = new List<Inventory.Item>();
+        List<Inventory.Item> allItems = new List<Inventory.Item>(items);
+        Shuffle(ref allItems);
+        int maxItemsPerPage = 10;
+        bool found = false;
+        int pageNumber = 0;
+        string prompt = "";
+        while (!found && pageNumber <= allItems.Count / maxItemsPerPage)
+        {
+            //Populate page to send to gpt
+            currentPage.Clear();
+            for (int i = 0; i < Mathf.Min(items.Count, maxItemsPerPage); i++)
+            {
+                currentPage.Add(allItems[pageNumber * maxItemsPerPage + i]);
+            }
+
+            //Convert item list into gpt3 compatible prompt
+            string request = ItemListToString(currentPage, listen);
+
+            Debug.Log(request);
+            //Request from gpt3
+            prompt = GPT3.Request(request, "curie", 75, true).Split("\n".ToCharArray())[0];
+                                                                //prompt = request;
+
+            found = prompt != "None";
+            pageNumber++;
+        }
+
+        //Could be expensive if wrong engine is used
+        if(prompt == "") 
+        {
+            prompt = ParseInventoryQuestionRequest(listen, items);
+        }
+
+
+
+        return prompt;
+    }
+
+
+
+}
+
+
+
 /// <summary>
 /// All the processing done for the knowledge of the AI
 /// </summary>
@@ -73,6 +237,20 @@ public class Knowledge
             qType=QuestionType.None,
             cType=CommandType.None,
             prompt="Why are you serious?",
+            answer="Question"
+        },
+        new Text(){
+            type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
+            prompt="Where are the bananas?",
+            answer="Question"
+        },
+        new Text(){
+            type=CoarseTextType.Question,
+            qType=QuestionType.None,
+            cType=CommandType.None,
+            prompt="Whats the sword called?",
             answer="Question"
         },
     };
@@ -158,6 +336,20 @@ public class Knowledge
         },
         new Text(){
             type=CoarseTextType.None,
+            qType=QuestionType.Environment,
+            cType=CommandType.None,
+            prompt="Where can I find exaclibur?",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Environment,
+            cType=CommandType.None,
+            prompt="Where is Tommy?",
+            answer="Environment"
+        },
+        new Text(){
+            type=CoarseTextType.None,
             qType=QuestionType.Personal,
             cType=CommandType.None,
             prompt="Why are you doing this?",
@@ -177,6 +369,35 @@ public class Knowledge
             prompt="What caused you to do that?",
             answer="Personal"
         },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Inventory,
+            cType=CommandType.None,
+            prompt="What do you have on you?",
+            answer="Inventory"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Inventory,
+            cType=CommandType.None,
+            prompt="Do you have any gold?",
+            answer="Inventory"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Inventory,
+            cType=CommandType.None,
+            prompt="How much money do you have?",
+            answer="Inventory"
+        },
+        new Text(){
+            type=CoarseTextType.None,
+            qType=QuestionType.Inventory,
+            cType=CommandType.None,
+            prompt="Whats the sword called?",
+            answer="Inventory"
+        },
+        
     };
 
 
@@ -409,7 +630,15 @@ public class AI : MonoBehaviour
     [SerializeField]
     public Knowledge.Text backStory;
 
+    /// <summary>
+    /// The items which the AI has
+    /// </summary>
+    [SerializeField]
+    public List<Inventory.Item> inventory;
 
+    /// <summary>
+    /// Internal representation of previous dialog (Will replace soon I think)
+    /// </summary>
     private List<string> previousDialog = new List<string>();
 
     void Start()
@@ -495,20 +724,21 @@ public class AI : MonoBehaviour
     /// <param name="listen"> Whats being said to the AI </param>
     private void Question(string listen)
     {
+        string player = "Progyo";
         Debug.Log("Question!");
         //Classify whats being said
         string question = Knowledge.CreateQuestionClassificationPrompt(knowledge);
-        string answer = GPT3.RequestClassification(question, listen, new List<string>() { "Environment", "Personal" }, "ada", "curie", 5, true);
+        string answer = GPT3.RequestClassification(question, listen, new List<string>() { "Environment", "Personal", "Inventory" }, "ada", "curie", 5, true);
         Debug.Log(answer);
 
         if (answer == "Environment") 
         {
-            Debug.Log("Environment!");
+            Debug.Log(answer);
         }
         else if(answer == "Personal") 
         {
             Debug.Log("Personal!");
-            string player = "Progyo";
+            
             string prompt = "";
             if (previousDialog.Count == 0) 
             {
@@ -526,12 +756,18 @@ public class AI : MonoBehaviour
                 prompt = string.Format("{0}\\nYou and a player named {1} have been talking already. This was your previous dialog. {2}{1} now asks you: {3}\\n###\\nYou respond by saying: ", backStory.prompt, player, previous,listen);
             }
             Debug.Log("Prompt \n " + prompt);
-            answer = GPT3.Request(prompt, "davinci", 75, true).Split("\n".ToCharArray())[0];
-
-            previousDialog.Add(string.Format("{0}: {1}\\n###\\nYou: {2}", player, listen, answer));
+            answer = GPT3.Request(prompt, "davinci", 75, true).Split("\n".ToCharArray())[0];   
 
             Debug.Log(answer);
         }
+        else if(answer == "Inventory") 
+        {
+
+            string output = Inventory.ParseInventoryQuestionRequest(listen, inventory);
+            Debug.Log(output);
+        }
+
+        previousDialog.Add(string.Format("{0}: {1}\\n###\\nYou: {2}", player, listen, answer));
 
     }
 
